@@ -1,15 +1,19 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewStack extends StatefulWidget {
-  const WebViewStack({required this.controller, Key? key}) : super(key: key); // Modify
+  const WebViewStack({required this.controller, Key? key})
+      : super(key: key); // Modify
 
-  final Completer<WebViewController> controller;   // Add this attribute
+  final Completer<WebViewController> controller; // Add this attribute
 
   @override
   State<WebViewStack> createState() => _WebViewStackState();
 }
+
 class _WebViewStackState extends State<WebViewStack> {
   var loadingPercentage = 0;
 
@@ -40,6 +44,21 @@ class _WebViewStackState extends State<WebViewStack> {
             });
           },
           javascriptMode: JavascriptMode.unrestricted,
+          gestureNavigationEnabled: true,
+          zoomEnabled: false,
+          gestureRecognizers: Set()
+            ..add(
+              Factory<VerticalDragGestureRecognizer>(
+                  () => VerticalDragGestureRecognizer()
+                    ..onDown = (DragDownDetails dragDownDetails) {
+                      widget.controller.getScrollY().then((value) {
+                        if (value == 0 &&
+                            dragDownDetails.globalPosition.direction < 1) {
+                          widget.controller.reload();
+                        }
+                      });
+                    }),
+            ),
         ),
         if (loadingPercentage < 100)
           LinearProgressIndicator(
